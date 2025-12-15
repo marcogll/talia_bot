@@ -12,14 +12,14 @@ This file tracks the development tasks for the Talía project.
 
 ## Phase 2: Core Logic Implementation
 
-- [ ] Implement `main.py` as the central orchestrator.
-- [ ] Implement `config.py` to handle environment variables.
-- [ ] Implement `permissions.py` for role-based access control.
-- [ ] Implement `webhook_client.py` for n8n communication.
+- [x] Implement `main.py` as the central orchestrator.
+- [x] Implement `config.py` to handle environment variables.
+- [x] Implement `permissions.py` for role-based access control.
+- [x] Implement `webhook_client.py` for n8n communication.
 
 ## Phase 3: Module Implementation
 
-- [ ] Implement `onboarding.py` module.
+- [x] Implement `onboarding.py` module.
 - [ ] Implement `agenda.py` module.
 - [ ] Implement `citas.py` module.
 - [ ] Implement `equipo.py` module.
@@ -39,3 +39,4 @@ This file tracks the development tasks for the Talía project.
 
 - Created `tasks.md` to begin tracking development.
 - Completed initial project scaffolding.
+- Implemented the core logic for the bot, including the central orchestrator, permissions, and onboarding.
