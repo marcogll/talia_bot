@@ -29,7 +29,7 @@ from modules.aprobaciones import view_pending, handle_approval_action
 from modules.servicios import get_service_info
 from modules.admin import get_system_status
 from modules.print import print_handler
-from app.scheduler import schedule_daily_summary
+from scheduler import schedule_daily_summary
 
 # Enable logging
 logging.basicConfig(

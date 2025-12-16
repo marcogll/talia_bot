@@ -4,7 +4,7 @@ import datetime
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from app.config import GOOGLE_SERVICE_ACCOUNT_FILE, CALENDAR_ID
+from config import GOOGLE_SERVICE_ACCOUNT_FILE, CALENDAR_ID
 
 # Set up the Calendar API
 SCOPES = ["https://www.googleapis.com/auth/calendar"]

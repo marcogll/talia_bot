@@ -4,8 +4,8 @@ from datetime import time
 from telegram.ext import ContextTypes
 import pytz
 
-from app.config import OWNER_CHAT_ID, TIMEZONE
-from app.modules.agenda import get_agenda
+from config import OWNER_CHAT_ID, TIMEZONE
+from modules.agenda import get_agenda
 
 # Enable logging
 logger = logging.getLogger(__name__)

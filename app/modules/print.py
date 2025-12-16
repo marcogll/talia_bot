@@ -2,8 +2,8 @@
 
 from telegram import Update
 from telegram.ext import ContextTypes
-from ..permissions import is_admin
-from ..config import TIMEZONE, CALENDAR_ID, N8N_WEBHOOK_URL
+from permissions import is_admin
+from config import TIMEZONE, CALENDAR_ID, N8N_WEBHOOK_URL
 
 async def print_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handles the /print command."""
