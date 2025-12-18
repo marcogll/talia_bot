@@ -132,6 +132,21 @@ Cada módulo cumple una responsabilidad única:
 
 ---
 
+## ⚡ Comandos Adicionales
+
+### `/create_tag`
+
+Este comando inicia un flujo conversacional para generar un tag de identificación en formato Base64, compatible con aplicaciones de escritura NFC. El bot solicitará los siguientes datos:
+
+*   **Nombre**
+*   **Número de empleado**
+*   **Sucursal**
+*   **ID de Telegram**
+
+Al finalizar, el bot devolverá una cadena de texto en Base64 que contiene un objeto JSON con la información proporcionada.
+
+---
+
 ## 🔁 Flujo General de Ejecución
 
 1. Usuario envía mensaje o interactúa con botones
