@@ -129,6 +129,8 @@ Cada módulo cumple una responsabilidad única:
 * **aprobaciones.py**: aceptar o rechazar solicitudes
 * **servicios.py**: información y cotización de proyectos
 * **admin.py**: acciones administrativas
+* **create_tag.py**: genera un tag de identificación en Base64 para NFC
+* **print.py**: (admin) imprime la configuración actual del bot
 
 ---
 
