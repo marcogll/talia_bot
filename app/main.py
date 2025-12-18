@@ -2,6 +2,7 @@
 # Este es el archivo principal del bot. Aquí se inicia todo y se configuran los comandos.
 
 import logging
+import asyncio
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -93,20 +94,26 @@ async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         'view_pending': view_pending,
     }
 
-    # Mapeo para botones de aprobación
-    approval_handlers = {
-        'approve': handle_approval_action,
-        'reject': handle_approval_action,
-    }
-
-    if query.data in async_handlers:
-        await async_handlers[query.data](update, context)
-        return
-    elif query.data in sync_text_handlers:
-        response_text = sync_text_handlers[query.data]()
-    elif query.data in sync_markup_handlers:
-        response_text, reply_markup = sync_markup_handlers[query.data]()
-    elif query.data.startswith(tuple(approval_handlers.keys())):
+    if query.data in simple_handlers:
+        handler = simple_handlers[query.data]
+        logger.info(f"Ejecutando simple_handler para: {query.data}")
+        if asyncio.iscoroutinefunction(handler):
+            response_text = await handler()
+        else:
+            response_text = handler()
+        logger.info(f"Respuesta obtenida para {query.data}")
+        await query.edit_message_text(text=response_text, parse_mode='Markdown')
+    elif query.data in complex_handlers:
+        handler = complex_handlers[query.data]
+        logger.info(f"Ejecutando complex_handler para: {query.data}")
+        if asyncio.iscoroutinefunction(handler):
+            response_text, reply_markup = await handler()
+        else:
+            response_text, reply_markup = handler()
+        logger.info(f"Respuesta obtenida para {query.data}")
+        await query.edit_message_text(text=response_text, reply_markup=reply_markup, parse_mode='Markdown')
+    elif query.data.startswith(('approve:', 'reject:')):
+        logger.info(f"Ejecutando acción de aprobación: {query.data}")
         response_text = handle_approval_action(query.data)
     elif query.data == 'start_create_tag':
         response_text = "Para crear un tag, por favor usa el comando /create_tag."
