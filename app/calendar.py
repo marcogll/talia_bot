@@ -113,3 +113,25 @@ def create_event(summary, start_time, end_time, attendees, calendar_id=CALENDAR_
     except HttpError as error:
         print(f"Ocurrió un error al crear el evento: {error}")
         return None
+
+
+def get_events(start_time, end_time, calendar_id=CALENDAR_ID):
+    """
+    Obtiene la lista de eventos entre dos momentos.
+    """
+    try:
+        events_result = (
+            service.events()
+            .list(
+                calendarId=calendar_id,
+                timeMin=start_time.isoformat(),
+                timeMax=end_time.isoformat(),
+                singleEvents=True,
+                orderBy="startTime",
+            )
+            .execute()
+        )
+        return events_result.get("items", [])
+    except HttpError as error:
+        print(f"Ocurrió un error al obtener eventos: {error}")
+        return []

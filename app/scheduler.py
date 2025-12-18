@@ -6,7 +6,7 @@ from datetime import time
 from telegram.ext import ContextTypes
 import pytz
 
-from config import OWNER_CHAT_ID, TIMEZONE
+from config import OWNER_CHAT_ID, TIMEZONE, DAILY_SUMMARY_TIME
 from modules.agenda import get_agenda
 
 # Configuramos el registro de eventos (logging) para ver qué pasa en la consola
@@ -53,8 +53,15 @@ def schedule_daily_summary(application) -> None:
     # Configuramos la zona horaria (ej. America/Mexico_City)
     tz = pytz.timezone(TIMEZONE)
 
-    # Programamos la tarea para que corra todos los días a las 7:00 AM
-    scheduled_time = time(hour=7, minute=0, tzinfo=tz)
+    # Obtenemos la hora y minutos desde la configuración (ej. "07:00")
+    try:
+        hour, minute = map(int, DAILY_SUMMARY_TIME.split(':'))
+    except ValueError:
+        logger.error(f"Formato de DAILY_SUMMARY_TIME inválido: {DAILY_SUMMARY_TIME}. Usando 07:00 por defecto.")
+        hour, minute = 7, 0
+
+    # Programamos la tarea para que corra todos los días a la hora configurada
+    scheduled_time = time(hour=hour, minute=minute, tzinfo=tz)
 
     job_queue.run_daily(
         send_daily_summary,

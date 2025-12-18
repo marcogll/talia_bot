@@ -2,7 +2,7 @@
 # Este script se encarga de la comunicación con la inteligencia artificial de OpenAI.
 
 import openai
-from config import OPENAI_API_KEY
+from config import OPENAI_API_KEY, OPENAI_MODEL
 
 def get_smart_response(prompt):
     """
@@ -19,9 +19,9 @@ def get_smart_response(prompt):
         # Creamos el cliente de OpenAI
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         
-        # Solicitamos una respuesta al modelo GPT-3.5-turbo
+        # Solicitamos una respuesta al modelo configurado
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=OPENAI_MODEL,
             messages=[
                 {"role": "system", "content": "Eres un asistente útil."},
                 {"role": "user", "content": prompt},

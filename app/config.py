@@ -28,5 +28,14 @@ N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL")
 # Llave de la API de OpenAI para usar modelos de lenguaje (como GPT)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Modelo de OpenAI a utilizar (ej. gpt-3.5-turbo, gpt-4)
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+
+# Hora del resumen diario (formato HH:MM)
+DAILY_SUMMARY_TIME = os.getenv("DAILY_SUMMARY_TIME", "07:00")
+
+# Enlace de Calendly para agendar citas
+CALENDLY_LINK = os.getenv("CALENDLY_LINK", "https://calendly.com/user/appointment-link")
+
 # Zona horaria por defecto para el manejo de fechas y horas
 TIMEZONE = os.getenv("TIMEZONE", "America/Mexico_City")
