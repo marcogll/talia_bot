@@ -129,6 +129,23 @@ Cada módulo cumple una responsabilidad única:
 * **aprobaciones.py**: aceptar o rechazar solicitudes
 * **servicios.py**: información y cotización de proyectos
 * **admin.py**: acciones administrativas
+* **create_tag.py**: genera un tag de identificación en Base64 para NFC
+* **print.py**: (admin) imprime la configuración actual del bot
+
+---
+
+## ⚡ Comandos Adicionales
+
+### `/create_tag`
+
+Este comando inicia un flujo conversacional para generar un tag de identificación en formato Base64, compatible con aplicaciones de escritura NFC. El bot solicitará los siguientes datos:
+
+*   **Nombre**
+*   **Número de empleado**
+*   **Sucursal**
+*   **ID de Telegram**
+
+Al finalizar, el bot devolverá una cadena de texto en Base64 que contiene un objeto JSON con la información proporcionada.
 
 ---
 
