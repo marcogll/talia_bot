@@ -1,4 +1,4 @@
-# app/calendar.py
+# app/google_calendar.py
 # Este script maneja la integración con Google Calendar (Calendario de Google).
 # Permite buscar espacios libres y crear eventos.
 

@@ -15,7 +15,7 @@ from telegram.ext import (
 
 # Importamos las configuraciones y herramientas que creamos en otros archivos
 from config import TELEGRAM_BOT_TOKEN
-from permissions import get_user_role
+from permissions import get_user_role, is_admin
 from modules.onboarding import handle_start as onboarding_handle_start
 from modules.agenda import get_agenda
 from modules.citas import request_appointment
@@ -32,7 +32,8 @@ from modules.aprobaciones import view_pending, handle_approval_action
 from modules.servicios import get_service_info
 from modules.admin import get_system_status
 from modules.print import print_handler
-from modules.create_tag import create_tag_conv_handler
+from modules.create_tag import create_tag_conv_handler, create_tag_start
+from modules.vikunja import get_tasks
 from scheduler import schedule_daily_summary
 
 # Configuramos el sistema de logs para ver mensajes de estado en la consola
@@ -73,6 +74,7 @@ async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     # Diccionario de acciones simples (que solo devuelven texto)
     simple_handlers = {
         'view_agenda': get_agenda,
+        'view_tasks': get_tasks,
         'view_requests_status': view_requests_status,
         'schedule_appointment': request_appointment,
         'get_service_info': get_service_info,
@@ -93,6 +95,11 @@ async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     elif query.data.startswith(('approve:', 'reject:')):
         # Manejo especial para botones de aprobar o rechazar
         response_text = handle_approval_action(query.data)
+    elif query.data == 'start_create_tag':
+        # Iniciamos el flujo de creación de tag
+        await query.message.reply_text("Iniciando creación de tag...")
+        # Aquí simulamos el comando /create_tag
+        return await create_tag_start(update, context)
 
     # Editamos el mensaje original con la nueva información
     await query.edit_message_text(text=response_text, reply_markup=reply_markup, parse_mode='Markdown')
@@ -127,6 +134,15 @@ def main() -> None:
     application.add_handler(create_tag_conv_handler())
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("print", print_handler))
+    
+    # Comando /vik restringido a administradores
+    async def vik_command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if is_admin(update.effective_chat.id):
+            await update.message.reply_text(get_tasks(), parse_mode='Markdown')
+        else:
+            await update.message.reply_text("No tienes permiso para usar este comando.")
+            
+    application.add_handler(CommandHandler("vik", vik_command_handler))
     application.add_handler(CallbackQueryHandler(button_dispatcher))
 
     # Iniciamos el bot (se queda escuchando mensajes)

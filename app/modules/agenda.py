@@ -3,7 +3,7 @@
 # Permite obtener y mostrar las actividades programadas para el día.
 
 import datetime
-from calendar import get_events
+from google_calendar import get_events
 
 def get_agenda():
     """

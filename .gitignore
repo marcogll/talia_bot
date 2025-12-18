@@ -163,3 +163,5 @@ cython_debug/
 
 # Logs
 *.log
+# Test scripts
+test_google_auth.py

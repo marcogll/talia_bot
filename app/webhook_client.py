@@ -3,23 +3,31 @@
 # En este caso, se comunica con n8n.
 
 import requests
-from config import N8N_WEBHOOK_URL
+from config import N8N_WEBHOOK_URL, N8N_TEST_WEBHOOK_URL
 
 def send_webhook(event_data):
     """
     Envía datos de un evento al servicio n8n.
-    
-    Parámetros:
-    - event_data: Un diccionario con la información que queremos enviar.
+    Usa el webhook normal y, si falla o no existe, usa el de test como fallback.
     """
-    try:
-        # Hacemos una petición POST (enviar datos) a la URL configurada
-        response = requests.post(N8N_WEBHOOK_URL, json=event_data)
-        # Verificamos si la petición fue exitosa (status code 200-299)
-        response.raise_for_status()
-        # Devolvemos la respuesta del servidor en formato JSON
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        # Si hay un error en la conexión o el envío, lo mostramos
-        print(f"Error al enviar el webhook: {e}")
-        return None
+    # Intentar con el webhook principal
+    if N8N_WEBHOOK_URL:
+        try:
+            print(f"Intentando enviar a webhook principal: {N8N_WEBHOOK_URL}")
+            response = requests.post(N8N_WEBHOOK_URL, json=event_data)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"Fallo en webhook principal: {e}")
+
+    # Fallback al webhook de test
+    if N8N_TEST_WEBHOOK_URL:
+        try:
+            print(f"Intentando enviar a webhook de fallback (test): {N8N_TEST_WEBHOOK_URL}")
+            response = requests.post(N8N_TEST_WEBHOOK_URL, json=event_data)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"Fallo en webhook de fallback: {e}")
+
+    return None

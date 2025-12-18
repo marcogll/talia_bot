@@ -15,8 +15,9 @@ def get_owner_menu():
 def get_admin_menu():
     """Crea el menú de botones para los Administradores."""
     keyboard = [
-        [InlineKeyboardButton("📊 Ver estado del sistema", callback_data='view_system_status')],
-        [InlineKeyboardButton("👥 Gestionar usuarios", callback_data='manage_users')],
+        [InlineKeyboardButton("📋 Ver Tareas (Vikunja)", callback_data='view_tasks')],
+        [InlineKeyboardButton("🏷️ Crear Tag NFC", callback_data='start_create_tag')],
+        [InlineKeyboardButton("📊 Estado del sistema", callback_data='view_system_status')],
     ]
     return InlineKeyboardMarkup(keyboard)
 
