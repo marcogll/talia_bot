@@ -33,8 +33,8 @@ from modules.aprobaciones import view_pending, handle_approval_action
 from modules.servicios import get_service_info
 from modules.admin import get_system_status
 from modules.print import print_handler
-from modules.create_tag import create_tag_conv_handler, create_tag_start
-from modules.vikunja import vikunja_conv_handler, get_tasks as get_vikunja_tasks
+from modules.create_tag import create_tag_conv_handler
+from modules.vikunja import vikunja_conv_handler
 
 from scheduler import schedule_daily_summary
 
@@ -72,7 +72,13 @@ async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     response_text = "Acción no reconocida."
     reply_markup = None
 
-    simple_handlers = {
+    # Mapeo de `callback_data` a funciones `async`
+    async_handlers = {
+        'propose_activity': propose_activity_start,
+    }
+
+    # Mapeo para funciones síncronas que devuelven solo texto
+    sync_text_handlers = {
         'view_agenda': get_agenda,
         'view_requests_status': view_requests_status,
         'schedule_appointment': request_appointment,
@@ -81,28 +87,35 @@ async def button_dispatcher(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         'manage_users': lambda: "Función de gestión de usuarios no implementada.",
     }
 
-    complex_handlers = {
-        'view_pending': view_pending,
+    # Mapeo para funciones síncronas que devuelven texto y markup
+    sync_markup_handlers = {
         'admin_menu': get_admin_secondary_menu,
+        'view_pending': view_pending,
     }
 
-    if query.data in simple_handlers:
-        response_text = simple_handlers[query.data]()
-        await query.edit_message_text(text=response_text, parse_mode='Markdown')
-    elif query.data in complex_handlers:
-        response_text, reply_markup = complex_handlers[query.data]()
-        await query.edit_message_text(text=response_text, reply_markup=reply_markup, parse_mode='Markdown')
-    elif query.data.startswith(('approve:', 'reject:')):
-        response_text = handle_approval_action(query.data)
-        await query.edit_message_text(text=response_text, parse_mode='Markdown')
-    elif query.data == 'start_create_tag':
-        await query.message.reply_text("Iniciando creación de tag...")
-        return await create_tag_start(update, context)
-    else:
-        # Si no es ninguna de las acciones conocidas, asumimos que es para un ConversationHandler
-        # y no hacemos nada aquí para no interferir.
-        logger.warning(f"Consulta no manejada por el despachador principal: {query.data}")
+    # Mapeo para botones de aprobación
+    approval_handlers = {
+        'approve': handle_approval_action,
+        'reject': handle_approval_action,
+    }
 
+    if query.data in async_handlers:
+        await async_handlers[query.data](update, context)
+        return
+    elif query.data in sync_text_handlers:
+        response_text = sync_text_handlers[query.data]()
+    elif query.data in sync_markup_handlers:
+        response_text, reply_markup = sync_markup_handlers[query.data]()
+    elif query.data.startswith(tuple(approval_handlers.keys())):
+        response_text = handle_approval_action(query.data)
+    elif query.data == 'start_create_tag':
+        response_text = "Para crear un tag, por favor usa el comando /create_tag."
+    else:
+        logger.warning(f"Consulta no manejada por el despachador: {query.data}")
+        await query.edit_message_text(text=response_text)
+        return
+
+    await query.edit_message_text(text=response_text, reply_markup=reply_markup, parse_mode='Markdown')
 
 def main() -> None:
     """Función principal que arranca el bot."""
@@ -113,6 +126,10 @@ def main() -> None:
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
     schedule_daily_summary(application)
 
+    # El orden de los handlers es crucial para que las conversaciones funcionen.
+    application.add_handler(create_tag_conv_handler())
+    application.add_handler(vikunja_conv_handler())
+
     conv_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(propose_activity_start, pattern='^propose_activity$')],
         states={
@@ -122,14 +139,11 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', cancel_proposal)],
         per_message=False
     )
-
-    # El order de los handlers importa. El dispatcher debe ir después de los ConversationHandlers
-    # para no interceptar sus callbacks.
     application.add_handler(conv_handler)
-    application.add_handler(create_tag_conv_handler())
-    application.add_handler(vikunja_conv_handler())
+
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("print", print_handler))
+
     application.add_handler(CallbackQueryHandler(button_dispatcher))
 
     logger.info("Iniciando Talía Bot...")
