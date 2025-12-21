@@ -19,7 +19,37 @@ La funcionalidad del bot se basa en dos pilares:
 
 ---
 
-## 🛠️ Arquitectura Técnica Simplificada
+## 📋 Flujos de Trabajo Modulares (Features)
+
+El comportamiento del bot se define a través de **flujos de conversación modulares** gestionados por un motor central (`flow_engine.py`). Cada flujo es un archivo `.json` independiente ubicado en `talia_bot/data/flows/`, lo que permite modificar o crear nuevas conversaciones sin alterar el código principal.
+
+### 1. 👑 Gestión Admin (Proyectos & Identidad)
+
+*   **Proyectos (Vikunja)**:
+    *   Resumen inteligente de estatus de proyectos.
+    *   Comandos naturales: *"Marca el proyecto de web como terminado y comenta que se envió factura"*.
+*   **Wizard de Identidad (NFC)**:
+    *   Flujo paso a paso para dar de alta colaboradores.
+    *   Genera JSON de registro y String Base64 listo para escribir en Tags NFC.
+    *   Inputs: Nombre, ID Empleado, Sucursal (Botones), Telegram ID.
+
+### 2. 👷 Gestión Crew (Agenda & Tareas)
+
+*   **Solicitud de Tiempo (Wizard)**:
+    *   Solicita espacios de 1 a 4 horas.
+    *   **Reglas de Negocio**:
+        *   No permite fechas > 3 meses a futuro.
+        *   **Gatekeeper**: Verifica Google Calendar. Si hay evento "Privado" del Admin, rechaza automáticamente.
+*   **Modo Buzón (Vikunja)**:
+    *   Crea tareas asignadas al Admin.
+    *   **Privacidad**: Solo pueden consultar el estatus de tareas creadas por ellos mismos.
+
+### 3. 🖨️ Sistema de Impresión Remota (Print Loop)
+
+*   Permite enviar archivos desde Telegram a la impresora física de la oficina.
+*   **Envío (SMTP)**: El bot envía el documento a un correo designado.
+*   **Tracking**: El asunto del correo lleva un hash único: `PJ:{uuid}#TID:{telegram_id}`.
+*   **Confirmación (IMAP Listener)**: Un proceso en background escucha la respuesta de la impresora y notifica al usuario en Telegram.
 
 El sistema opera con el siguiente flujo:
 
@@ -85,13 +115,11 @@ GOOGLE_SERVICE_ACCOUNT_FILE=./google_key.json
 *   **Credenciales de Google**: Coloca tu archivo de credenciales de la cuenta de servicio de Google Cloud en el directorio raíz del proyecto y renómbralo a `google_key.json`. **El archivo `.gitignore` ya está configurado para ignorar este archivo y proteger tus claves.**
 *   **Flujos de Conversación**: Para modificar o añadir flujos, edita los archivos JSON en `talia_bot/data/flows/`.
 
-### 4. Ejecución con Docker
-
-La forma más sencilla de levantar el bot es usando Docker Compose:
-
-```bash
-docker-compose up --build
-```
+Asegúrate de tener los archivos y directorios base en `talia_bot/data/`:
+*   `servicios.json`: Catálogo de servicios para el RAG de ventas.
+*   `credentials.json`: Credenciales de Google Cloud.
+*   `users.db`: Base de datos SQLite que almacena los roles de los usuarios.
+*   `flows/`: Directorio que contiene las definiciones de los flujos de conversación en formato JSON. Cada archivo representa una conversación completa para un rol específico.
 
 ---
 
@@ -107,25 +135,26 @@ talia_bot/
 ├── google_key.json            # (Local) Credenciales de Google Cloud
 ├── requirements.txt           # Dependencias de Python
 ├── talia_bot/
-│   ├── __init__.py
-│   ├── main.py                # Entry point, dispatcher y handlers de Telegram
-│   ├── db.py                  # Lógica de la base de datos SQLite
-│   ├── config.py              # Carga y validación de variables de entorno
-│   ├── scheduler.py           # (Futuro) Tareas programadas
-│   ├── webhook_client.py      # (Futuro) Cliente para webhooks externos
-│   ├── data/
-│   │   ├── flows/             # Directorio con flujos de conversación en JSON
-│   │   ├── services.json      # Base de conocimiento para ventas
-│   │   └── users.db           # Base de datos de usuarios
-│   └── modules/
-│       ├── __init__.py
-│       ├── flow_engine.py     # Motor que interpreta los flujos JSON
-│       ├── calendar.py        # Integración con Google Calendar API
-│       ├── vikunja.py         # Integración con Vikunja API
-│       ├── onboarding.py      # Lógica para el alta de nuevos usuarios
-│       ├── llm_engine.py      # (Opcional) Cliente para OpenAI/Gemini
-│       └── ... (otros módulos)
-└── ...
+│   ├── main.py              # Entry Point y dispatcher principal
+│   ├── db.py                # Gestión de la base de datos SQLite
+│   ├── config.py            # Carga de variables de entorno
+│   ├── modules/
+│   │   ├── flow_engine.py   # Motor de flujos de conversación (lee los JSON)
+│   │   ├── identity.py      # Lógica de Roles y Permisos
+│   │   ├── llm_engine.py    # Cliente OpenAI/Gemini
+│   │   ├── vikunja.py       # API Manager para Tareas
+│   │   ├── calendar.py      # Google Calendar Logic & Rules
+│   │   ├── printer.py       # SMTP/IMAP Loop
+│   │   └── sales_rag.py     # Lógica de Ventas y Servicios
+│   └── data/
+│       ├── flows/           # Directorio con los flujos de conversación en JSON
+│       ├── servicios.json   # Base de conocimiento para ventas
+│       ├── credentials.json # Credenciales de Google
+│       └── users.db         # Base de datos de usuarios
+├── .env.example             # Plantilla de variables de entorno
+├── requirements.txt         # Dependencias
+├── Dockerfile               # Configuración del contenedor
+└── docker-compose.yml       # Orquestador de Docker
 ```
 
 ---

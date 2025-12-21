@@ -44,7 +44,7 @@ def get_tasks():
 
         if not tasks:
             return "No tienes tareas pendientes en Vikunja."
-        
+
         text = "📋 *Tus Tareas en Vikunja*\n\n"
         for task in sorted(tasks, key=lambda t: t.get('id', 0))[:10]:
             status = "✅" if task.get('done') else "⏳"

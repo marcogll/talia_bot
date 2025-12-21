@@ -7,7 +7,7 @@ from talia_bot.config import OPENAI_API_KEY, OPENAI_MODEL
 def get_smart_response(prompt):
     """
     Genera una respuesta inteligente usando la API de OpenAI.
-    
+
     Parámetros:
     - prompt: El texto o pregunta que le enviamos a la IA.
     """
