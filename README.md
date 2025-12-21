@@ -1,34 +1,21 @@
 # 🤖 Talia Bot: Asistente Personal & Orquestador de Negocio
 
-Talia no es un simple chatbot; es un Middleware de Inteligencia Artificial alojado en un VPS que orquesta las operaciones diarias de administración, logística y ventas. Actúa como el puente central entre usuarios en Telegram y servicios críticos como Vikunja (Gestión de Proyectos), Google Calendar y Hardware de Impresión remota.
+Talia es un **Middleware de Inteligencia Artificial** diseñado para orquestar operaciones de negocio a través de Telegram. Funciona como un asistente personal que responde a roles de usuario específicos, conectando servicios externos como **Vikunja (Gestión de Proyectos)** y **Google Calendar** en una única interfaz conversacional.
 
 ---
 
-## 🚀 Concepto Central: Enrutamiento por Identidad
+## 🚀 Concepto Central: Arquitectura Modular y Roles de Usuario
 
-La característica core de Talia es su capacidad de cambiar de personalidad y permisos dinámicamente basándose en el Telegram ID del usuario:
+La funcionalidad del bot se basa en dos pilares:
 
-| Rol     | Icono | Descripción         | Permisos                                                                          |
-| :------ | :---: | :------------------ | :-------------------------------------------------------------------------------- |
-| **Admin** |  👑   | Dueño / Gerente     | God Mode: Gestión total de proyectos, bloqueos de calendario, generación de identidad NFC e impresión. |
-| **Crew**  |  👷   | Equipo Operativo    | Limitado: Solicitud de agenda (validada), asignación de tareas, impresión de documentos. |
-| **Cliente** |  👤   | Usuario Público     | Ventas: Embudo de captación, consulta de servicios (RAG) y agendamiento comercial. |
+1.  **Enrutamiento por Identidad**: El bot identifica a cada usuario por su Telegram ID y le asigna un rol (`admin`, `crew`, `client`). Cada rol tiene acceso a un conjunto diferente de funcionalidades y menús, definidos en una base de datos SQLite.
+2.  **Motor de Flujos de Conversación**: En lugar de código rígido, las conversaciones se definen como "flujos" en archivos **JSON** (`talia_bot/data/flows/`). Un motor central (`flow_engine.py`) interpreta estos archivos para guiar al usuario a través de una serie de preguntas y respuestas, haciendo que el sistema sea altamente escalable y fácil de mantener.
 
----
-
-## 🛠️ Arquitectura Técnica
-
-El sistema sigue un flujo modular:
-
-1.  **Input**: Telegram (Texto o Audio).
-2.  **STT**: Whisper (Conversión de Audio a Texto).
-3.  **Router**: Verificación de ID contra la base de datos de usuarios.
-4.  **Cerebro (LLM)**: OpenAI (Fase 1) / Google Gemini (Fase 2).
-5.  **Tools**:
-    *   **Vikunja API**: Lectura/Escritura de tareas con filtrado de privacidad.
-    *   **Google Calendar API**: Gestión de tiempos y reglas de disponibilidad.
-    *   **SMTP/IMAP**: Comunicación bidireccional con impresoras.
-    *   **NFC Gen**: Codificación Base64 para tags físicos.
+| Rol     | Icono | Descripción         | Permisos Clave                                                              |
+| :------ | :---: | :------------------ | :-------------------------------------------------------------------------- |
+| **Admin** |  👑   | Dueño / Gerente     | Control total: gestión de proyectos, agenda, y configuración del sistema.   |
+| **Crew**  |  👷   | Equipo Operativo    | Funciones limitadas: solicitud de agenda, impresión de documentos.          |
+| **Cliente** |  👤   | Usuario Externo     | Embudo de ventas: captación de datos y presentación de servicios.           |
 
 ---
 
@@ -64,12 +51,14 @@ El comportamiento del bot se define a través de **flujos de conversación modul
 *   **Tracking**: El asunto del correo lleva un hash único: `PJ:{uuid}#TID:{telegram_id}`.
 *   **Confirmación (IMAP Listener)**: Un proceso en background escucha la respuesta de la impresora y notifica al usuario en Telegram.
 
-### 4. 👤 Ventas Automáticas (RAG)
+El sistema opera con el siguiente flujo:
 
-*   Identifica usuarios nuevos (no registrados en la DB).
-*   Captura datos (Lead Magnet).
-*   Analiza ideas de clientes usando `servicios.json` (Base de conocimiento).
-*   Ofrece citas de ventas mediante link de Calendly.
+1.  **Recepción de Mensajes**: `main.py` recibe todos los inputs (texto, botones, comandos) desde Telegram.
+2.  **Identificación de Usuario**: Se consulta la base de datos (`users.db`) para obtener el rol del usuario.
+3.  **Dispatching de Acciones**:
+    *   Si el usuario no está en una conversación, se le muestra un menú de botones basado en los flujos JSON disponibles para su rol.
+    *   Si el usuario ya está en una conversación, el `flow_engine.py` gestiona la respuesta.
+4.  **Ejecución de Módulos**: El motor de flujos invoca módulos específicos (`vikunja.py`, `calendar.py`, etc.) para interactuar con APIs externas según sea necesario.
 
 ---
 
@@ -77,48 +66,54 @@ El comportamiento del bot se define a través de **flujos de conversación modul
 
 ### Prerrequisitos
 
-*   Python 3.10+
+*   Python 3.9+
+*   Docker y Docker Compose
 *   Cuenta de Telegram Bot (@BotFather)
 *   Instancia de Vikunja (Self-hosted)
-*   Cuenta de Servicio Google Cloud (Calendar API)
-*   Servidor de Correo (SMTP/IMAP)
+*   Credenciales de Cuenta de Servicio de Google Cloud (para Calendar API)
 
-### 1. Clonar y Entorno Virtual
+### 1. Clonar y Configurar el Entorno
 
 ```bash
-git clone https://github.com/marcogll/talia_bot_mg.git
-cd talia_bot_mg
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+# Clona el repositorio oficial
+git clone https://github.com/marcogll/talia_bot.git
+cd talia_bot
+
+# Copia el archivo de ejemplo para las variables de entorno
+cp .env.example .env
 ```
 
 ### 2. Variables de Entorno (`.env`)
 
-Crea un archivo `.env` en la raíz con la siguiente estructura:
+Abre el archivo `.env` y rellena las siguientes variables. **No subas este archivo a Git.**
 
 ```env
-# --- TELEGRAM & SECURITY ---
-TELEGRAM_BOT_TOKEN=tu_token_telegram
+# Token de tu bot de Telegram
+TELEGRAM_TOKEN=tu_token_telegram
+
+# Tu Telegram ID numérico para permisos de administrador
 ADMIN_ID=tu_telegram_id
 
-# --- AI CORE ---
+# Clave de API de OpenAI (si se usa)
 OPENAI_API_KEY=sk-...
 
-# --- INTEGRACIONES ---
-VIKUNJA_API_URL=https://tuservidor.com/api/v1
+# URL y Token de tu instancia de Vikunja
+VIKUNJA_API_URL=https://tu_vikunja.com/api/v1
 VIKUNJA_TOKEN=tu_token_vikunja
-GOOGLE_CREDENTIALS_PATH=./data/credentials.json
 
-# --- PRINT SERVICE ---
-SMTP_SERVER=smtp.hostinger.com
-SMTP_PORT=465
-SMTP_USER=print.service@vanityexperience.mx
-SMTP_PASS=tu_password_seguro
-IMAP_SERVER=imap.hostinger.com
+# ID del Calendario de Google a gestionar
+CALENDAR_ID=tu_id_de_calendario@group.calendar.google.com
+
+# Ruta al archivo de credenciales de Google Cloud.
+# Este archivo debe estar en el directorio raíz y se llama 'google_key.json' por defecto.
+GOOGLE_SERVICE_ACCOUNT_FILE=./google_key.json
 ```
 
-### 3. Estructura de Datos
+### 3. Estructura de Datos y Credenciales
+
+*   **Base de Datos**: La base de datos `users.db` se creará automáticamente si no existe. Para asignar roles, debes agregar manualmente los Telegram IDs en la tabla `users`.
+*   **Credenciales de Google**: Coloca tu archivo de credenciales de la cuenta de servicio de Google Cloud en el directorio raíz del proyecto y renómbralo a `google_key.json`. **El archivo `.gitignore` ya está configurado para ignorar este archivo y proteger tus claves.**
+*   **Flujos de Conversación**: Para modificar o añadir flujos, edita los archivos JSON en `talia_bot/data/flows/`.
 
 Asegúrate de tener los archivos y directorios base en `talia_bot/data/`:
 *   `servicios.json`: Catálogo de servicios para el RAG de ventas.
@@ -131,7 +126,14 @@ Asegúrate de tener los archivos y directorios base en `talia_bot/data/`:
 ## 📂 Estructura del Proyecto
 
 ```text
-talia_bot_mg/
+talia_bot/
+├── .env                       # (Local) Variables de entorno y secretos
+├── .env.example               # Plantilla de variables de entorno
+├── .gitignore                 # Archivos ignorados por Git
+├── Dockerfile                 # Define el contenedor de la aplicación
+├── docker-compose.yml         # Orquesta el servicio del bot
+├── google_key.json            # (Local) Credenciales de Google Cloud
+├── requirements.txt           # Dependencias de Python
 ├── talia_bot/
 │   ├── main.py              # Entry Point y dispatcher principal
 │   ├── db.py                # Gestión de la base de datos SQLite
