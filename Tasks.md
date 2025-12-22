@@ -13,6 +13,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: ASAP
 
 ### [SEC-002] Hardcoded Secrets Management
+- **Status**: TODO
 - **Priority**: High  
 - **Description**: Email credentials stored in plain text environment variables
 - **Files affected**: `config.py`, `.env.example`
@@ -20,6 +21,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [SEC-003] SQL Injection Prevention
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: Database connection lacks connection pooling and timeout configurations
 - **Files affected**: `db.py`
@@ -37,6 +39,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [IMP-002] Dynamic Menu Generation
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: `onboarding.py` has hardcoded menus instead of dynamic generation
 - **Files affected**: `onboarding.py`
@@ -44,6 +47,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Future iteration
 
 ### [IMP-003] Button Dispatcher Agent
+- **Status**: TODO
 - **Priority**: Low
 - **Description**: "Despachador de Botones" mentioned in AGENTS.md but not implemented
 - **Files affected**: Need to create new module
@@ -53,6 +57,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 ## **Architecture & Code Quality** 🟠
 
 ### [ARCH-001] Main.py Business Logic Violation
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: `main.py` contains business logic (lines 56-95) violating "Recepcionista" agent role
 - **Files affected**: `main.py`
@@ -60,6 +65,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [ARCH-002] Error Handling Consistency
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: Inconsistent error handling across modules, missing try-catch blocks
 - **Files affected**: `flow_engine.py`, `printer.py`, multiple modules
@@ -67,6 +73,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [ARCH-003] Code Duplication
+- **Status**: TODO
 - **Priority**: Low
 - **Description**: Database connection patterns repeated, similar menu generation logic
 - **Files affected**: Multiple files
@@ -76,6 +83,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 ## **Performance & Optimization** 🟢
 
 ### [PERF-001] Database Connection Pooling
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: No connection pooling, missing indexes on frequently queried columns
 - **Files affected**: `db.py`
@@ -83,6 +91,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [PERF-002] Memory Management
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: Voice files loaded entirely into memory, no cleanup for failed uploads
 - **Files affected**: `llm_engine.py`, `main.py`
@@ -90,6 +99,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [PERF-003] Flow Engine Memory Usage
+- **Status**: TODO
 - **Priority**: Low
 - **Description**: Flow engine stores all conversation data in memory
 - **Files affected**: `flow_engine.py`
@@ -99,6 +109,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 ## **Dependencies & Configuration** 🔵
 
 ### [DEP-001] Python Version Upgrade
+- **Status**: TODO
 - **Priority**: High
 - **Description**: Using Python 3.9 (EOL October 2025) - should upgrade to 3.11+
 - **Files affected**: `Dockerfile`, `requirements.txt`
@@ -114,6 +125,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: ASAP
 
 ### [DEP-003] Docker Security Hardening
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: Running as root user, missing security hardening
 - **Files affected**: `Dockerfile`, `docker-compose.yml`
@@ -123,6 +135,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 ## **Bugs & Logical Errors** 🐛
 
 ### [BUG-001] Flow Engine Validation
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: `flow_engine.py:72` missing validation for empty steps array
 - **Files affected**: `flow_engine.py`
@@ -130,6 +143,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [BUG-002] Printer Module IMAP Search
+- **Status**: TODO
 - **Priority**: Medium
 - **Description**: `printer.py:88` IMAP search doesn't handle large email counts
 - **Files affected**: `printer.py`
@@ -137,6 +151,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Next sprint
 
 ### [BUG-003] Identity Module String Comparison
+- **Status**: TODO
 - **Priority**: Low
 - **Description**: `identity.py:42` string comparison for ADMIN_ID could fail if numeric
 - **Files affected**: `identity.py`
@@ -146,6 +161,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 ## **Documentation & Testing** 📚
 
 ### [DOC-001] Documentation Consistency
+- **Status**: TODO
 - **Priority**: Low
 - **Description**: AGENTS.md vs implementation inconsistencies
 - **Files affected**: `AGENTS.md`, various modules
@@ -153,6 +169,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Future iteration
 
 ### [TEST-001] Test Coverage
+- **Status**: TODO
 - **Priority**: Low
 - **Description**: Missing comprehensive test coverage
 - **Files affected**: All modules
@@ -160,6 +177,7 @@ This document tracks all pending tasks, improvements, and issues identified in t
 - **Due**: Future iteration
 
 ### [TEST-002] Code Quality Tools
+- **Status**: TODO
 - **Priority**: Low
 - **Description**: Missing code quality tools (black, flake8, mypy)
 - **Files affected**: Repository configuration
@@ -170,12 +188,12 @@ This document tracks all pending tasks, improvements, and issues identified in t
 
 ## **Sprint Planning**
 
-### **Current Sprint (High Priority)**
+### **Previous Sprint (High Priority)**
 - **[DONE]** [SEC-001] File upload security validation
 - **[DONE]** [DEP-002] Package security updates
 - **[DONE]** [IMP-001] Whisper transcription agent
 
-### **Next Sprint (Medium Priority)**
+### **Current Sprint (Medium Priority)**
 - [SEC-002] Secret management implementation
 - [SEC-003] Database connection pooling
 - [DEP-001] Python version upgrade

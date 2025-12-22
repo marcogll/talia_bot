@@ -52,24 +52,27 @@ class FlowEngine:
 
     def get_conversation_state(self, user_id):
         """Gets the current conversation state for a user from the database."""
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT flow_id, current_step_id, collected_data FROM conversations WHERE user_id = ?", (user_id,))
-        state = cursor.fetchone()
-        conn.close()
-        if state:
-            return {
-                "flow_id": state['flow_id'],
-                "current_step_id": state['current_step_id'],
-                "collected_data": json.loads(state['collected_data']) if state['collected_data'] else {}
-            }
-        return None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT flow_id, current_step_id, collected_data FROM conversations WHERE user_id = ?", (user_id,))
+            state = cursor.fetchone()
+            if state:
+                return {
+                    "flow_id": state['flow_id'],
+                    "current_step_id": state['current_step_id'],
+                    "collected_data": json.loads(state['collected_data']) if state['collected_data'] else {}
+                }
+            return None
+        except sqlite3.Error as e:
+            logger.error(f"Database error in get_conversation_state: {e}")
+            return None
 
     def start_flow(self, user_id, flow_id):
         """Starts a new flow for a user."""
         flow = self.get_flow(flow_id)
-        if not flow or 'steps' not in flow or not flow['steps']:
-            logger.error(f"Flow '{flow_id}' is invalid or has no steps.")
+        if not flow or 'steps' not in flow or not isinstance(flow['steps'], list) or not flow['steps']:
+            logger.error(f"Flow '{flow_id}' is invalid, has no steps, or steps is not a non-empty list.")
             return None
 
         initial_step = flow['steps'][0]
@@ -78,14 +81,16 @@ class FlowEngine:
 
     def update_conversation_state(self, user_id, flow_id, step_id, collected_data):
         """Creates or updates the conversation state in the database."""
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT OR REPLACE INTO conversations (user_id, flow_id, current_step_id, collected_data)
-            VALUES (?, ?, ?, ?)
-        """, (user_id, flow_id, step_id, json.dumps(collected_data)))
-        conn.commit()
-        conn.close()
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT OR REPLACE INTO conversations (user_id, flow_id, current_step_id, collected_data)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, flow_id, step_id, json.dumps(collected_data)))
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"Database error in update_conversation_state: {e}")
 
     def handle_response(self, user_id, response_data):
         """
@@ -147,8 +152,10 @@ class FlowEngine:
 
     def end_flow(self, user_id):
         """Ends a flow for a user by deleting their conversation state."""
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM conversations WHERE user_id = ?", (user_id,))
-        conn.commit()
-        conn.close()
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM conversations WHERE user_id = ?", (user_id,))
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"Database error in end_flow: {e}")

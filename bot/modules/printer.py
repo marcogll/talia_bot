@@ -5,10 +5,13 @@ import smtplib
 import imaplib
 import email
 import logging
+import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+from telegram import Update
+from telegram.ext import ContextTypes
 
 from bot.config import (
     SMTP_SERVER,
@@ -21,8 +24,35 @@ from bot.config import (
     PRINTER_EMAIL,
 )
 from bot.modules.identity import is_admin
+from bot.modules.file_validation import validate_document
 
 logger = logging.getLogger(__name__)
+
+async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handles documents sent to the bot for printing."""
+    document = update.message.document
+    user_id = update.effective_user.id
+
+    is_valid, message = validate_document(document)
+    if not is_valid:
+        await update.message.reply_text(message)
+        return
+
+    file = await context.bot.get_file(document.file_id)
+
+    temp_dir = 'temp_files'
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = os.path.join(temp_dir, document.file_name)
+
+    try:
+        await file.download_to_drive(file_path)
+
+        response = await send_file_to_printer(file_path, user_id, document.file_name)
+        await update.message.reply_text(response)
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
 
 async def send_file_to_printer(file_path: str, user_id: int, file_name: str):
     """
@@ -93,6 +123,9 @@ async def check_print_status(user_id: int):
         if not email_ids:
             return "No hay actualizaciones de estado de impresión."
 
+        # Fetch only the last 10 unseen emails
+        email_ids = email_ids[-10:]
+
         statuses = []
         for e_id in email_ids:
             _, msg_data = mail.fetch(e_id, "(RFC822)")
@@ -108,7 +141,10 @@ async def check_print_status(user_id: int):
                         statuses.append(f"Trabajo de impresión recibido: {msg['subject']}")
                     else:
                         statuses.append(f"Nuevo correo: {msg['subject']}")
+            # Mark the email as seen
+            mail.store(e_id, "+FLAGS", "\\Seen")
 
+        mail.close()
         mail.logout()
 
         if not statuses:
