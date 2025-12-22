@@ -4,16 +4,27 @@
 import sqlite3
 import logging
 import os
+import threading
 
 DATABASE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "users.db")
 
 logger = logging.getLogger(__name__)
 
+# Use a thread-local object to manage the database connection
+local = threading.local()
+
 def get_db_connection():
     """Creates a connection to the SQLite database."""
-    conn = sqlite3.connect(DATABASE_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    if not hasattr(local, "conn"):
+        local.conn = sqlite3.connect(DATABASE_FILE, check_same_thread=False)
+        local.conn.row_factory = sqlite3.Row
+    return local.conn
+
+def close_db_connection():
+    """Closes the database connection."""
+    if hasattr(local, "conn"):
+        local.conn.close()
+        del local.conn
 
 def setup_database():
     """Sets up the database tables if they don't exist."""
@@ -50,7 +61,7 @@ def setup_database():
         logger.error(f"Database error during setup: {e}")
     finally:
         if conn:
-            conn.close()
+            close_db_connection()
 
 if __name__ == '__main__':
     # This allows us to run the script directly to initialize the database
